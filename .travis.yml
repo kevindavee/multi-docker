@@ -1,0 +1,21 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t kevindavee/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run kevindavee/react-test npm-test -- --coverage
+
+after_success:
+  - docker build -t kevindavee/multi-client ./client
+  - docker build -t kevindavee/multi-nginx ./nginx
+  - docker build -t kevindavee/multi-server ./server
+  - docker build -t kevindavee/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push kevindavee/multi-client
+  - docker push kevindavee/multi-nginx
+  - docker push kevindavee/multi-server
+  - docker push kevindavee/multi-worker
